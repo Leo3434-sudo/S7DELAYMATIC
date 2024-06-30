@@ -1,0 +1,366 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S7 Delay Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #32CD32;
+            font-size: 24px; /* Küçültüldü */
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+            display: inline-block;
+            width: calc(33.33% - 10px);
+            vertical-align: top;
+        }
+
+        .form-group:nth-child(3n+2) {
+            margin: 0 5px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="time"], input[type="number"], select {
+            width: calc(100% - 10px);
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #32CD32;
+            color: white;
+            border: none;
+            padding: 10px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #28a745;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .delay-input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .delay-input-group select, .delay-input-group input[type="time"] {
+            margin-right: 10px;
+            flex-grow: 1;
+        }
+
+        .delay-input-group span {
+            margin-right: 10px;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .checkmark {
+            color: green;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        .remove-button {
+            background: none;
+            border: none;
+            color: red;
+            font-size: 16px; /* Küçültüldü */
+            cursor: pointer;
+            padding: 5px; /* Eklenen boşluk */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>S7 Delay Calculator</h1>
+        <form id="delayForm">
+            <div class="form-group">
+                <label for="sta">STA:</label>
+                <input type="time" id="sta" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="std">STD:</label>
+                <input type="time" id="std" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="ata">ATA:</label>
+                <input type="time" id="ata" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="dcl">DCL:</label>
+                <input type="time" id="dcl" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="pbt">PBT:</label>
+                <input type="time" id="pbt" required>
+            </div>
+
+            <div class="form-group">
+                <label for="totalWch">WCH:</label>
+                <input type="number" id="totalWch" required>
+            </div>
+            
+            <button type="button" onclick="calculateDelays()">Hesapla</button>
+        </form>
+        
+        <p class="bold center" id="remainingDelay">TOTAL DL: </p>
+        <div id="delayInputs"></div>
+        <div id="codesForm">
+            <select id="delayCodesDropdown">
+                <option value="0">0 · On-time performance (depart or take off)</option>
+                <option value="6">6 · No gate/stand availability (own airline activity, early arrivals)</option>
+                <option value="9">9 · Scheduled ground time less than declared min. GT</option>
+                <option value="11">11 · Late check-in, acceptance after deadline (except transfer)</option>
+                <option value="12Z">12Z · Lack of check-in agents</option>
+                <option value="12Y">12Y · Late start of check-in</option>
+                <option value="12X">12X · Congestion in check-in area</option>
+                <option value="13">13 · Check-in error, passenger and baggage</option>
+                <option value="14">14 · Oversales, booking errors</option>
+                <option value="15Z">15Z · Late start or closure of boarding (staff fault)</option>
+                <option value="15Y">15Y · Late closing of boarding, missing checked-in passenger</option>
+                <option value="15X">15X · No-show passenger(s) baggage unloading</option>
+                <option value="16">16 · Commercial publicity/passenger convenience, VIP, press, ground meals, and missing personal items</option>
+                <option value="17">17 · Catering order, late or incorrect order</option>
+                <option value="18">18 · Baggage processing, sorting, etc.</option>
+                <option value="19Z">19Z · Boarding/deboarding of passengers with reduced mobility</option>
+                <option value="19Y">19Y · Late boarding/deboarding of passengers with reduced mobility (lack of information)</option>
+                <option value="19X">19X · Late provision of special transport for PRM</option>
+                <option value="21">21 · Documentation errors, etc.</option>
+                <option value="22">22 · Late positioning of booked cargo/mail for loading</option>
+                <option value="23">23 · Late acceptance of cargo/mail from cargo handler (terminal) to ground handler</option>
+                <option value="24">24 · Inadequate packing (cargo/mail re-packing, marking)</option>
+                <option value="25Z">25Z · Cargo/mail unloading due to overweight</option>
+                <option value="25Y">25Y · Cargo/mail unloading due to overvolume</option>
+                <option value="26Z">26Z · Late preparation in warehouse</option>
+                <option value="26Y">26Y · Late preparation in warehouse for cargo aircraft</option>
+                <option value="27">27 · Documentation, packing, etc. (mail only)</option>
+                <option value="28">28 · Late positioning (mail only)</option>
+                <option value="29">29 · Late acceptance (mail only) from post (terminal) to ground handler</option>
+                <option value="31">31 · Aircraft documentation late/inaccurate: GD, WB, PAX MAN</option>
+                <option value="32Z">32Z · Cargo and mail volume more than indicated in SLA/turnaround schedule</option>
+                <option value="32Y">32Y · Time limit for loading not met due to lack of loading staff</option>
+                <option value="32X">32X · Securing of cargo, mail, and baggage</option>
+                <option value="32W">32W · Passenger boarding/disembarkation (between boarding/arrival gate and aircraft door)</option>
+                <option value="32V">32V · Cabin load and seating arrangement, disembarkation from the cabin</option>
+                <option value="32U">32U · Unloading: passenger(s), baggage due to lack of PLD</option>
+                <option value="32T">32T · Hand baggage reloading from the cabin to cargo compartment, DAA loading (baby strollers, wheelchairs, etc.)</option>
+                <option value="33">33 · Loading equipment lack or breakdown (belt transporters, container and pallet loaders, etc.), lack of staff (loading equipment operators)</option>
+                <option value="34">34 · Servicing equipment lack or breakdown (maintenance steps, wheel chocks, etc.)</option>
+                <option value="35Z">35Z · Late cleaning</option>
+                <option value="35Y">35Y · Late equipment (cabin items)</option>
+                <option value="36Z">36Z · Late arrival of the fuel truck or its breakdown, lack of fuel in the fuel truck</option>
+                <option value="36Y">36Y · Fuel documentation/inaccurate</option>
+                <option value="36X">36X · Fuel volume exceeds standard for turnaround schedule (extra fuel)</option>
+                <option value="37Z">37Z · Late delivery or loading</option>
+                <option value="37Y">37Y · Extra order due to commercial reasons</option>
+                                <option value="38">38 · ULD, containers and pallets not unloaded from the aircraft</option>
+                <option value="39">39 · ULD, containers and pallets not loaded into the aircraft</option>
+                <option value="40">40 · Cargo/mail bag loading error</option>
+                <option value="41">41 · Cargo/mail bag unloading error</option>
+                <option value="42">42 · Cargo/mail bag sorting error</option>
+                <option value="43Z">43Z · Cabin cleaning done after aircraft departure</option>
+                <option value="43Y">43Y · Technical cleaning</option>
+                <option value="44">44 · Loading and unloading of cargo and mail by ground handling unit at the airport, transfer to other units at the airport (control, quarantine, animal control, etc.)</option>
+                <option value="45">45 · Cargo and mail overload, or the last minute transfer (from one type of aircraft to another, etc.)</option>
+                <option value="46">46 · Specific type of loading/unloading cargo and mail</option>
+                <option value="47">47 · Special handling of cargo and mail</option>
+                <option value="48">48 · Other (type of cargo and mail loading/unloading)</option>
+                <option value="49Z">49Z · Cabin system fault</option>
+                <option value="49Y">49Y · Late documentation of cabin system defect</option>
+                <option value="49X">49X · The system is not prepared for operation</option>
+                <option value="51">51 · Late arrival of aircraft due to loading and unloading of passengers and luggage (baggage tags)</option>
+                <option value="52">52 · Late passenger boarding and disembarkation (including embarking/disembarking)</option>
+                <option value="53">53 · A fault in the loading and unloading of passengers and luggage</option>
+                <option value="54Z">54Z · Late arrival of airport services (pushback, boarding, baggage)</option>
+                <option value="54Y">54Y · Baggage transfer or passenger traffic control issues</option>
+                <option value="54X">54X · Failure to prepare airport services</option>
+                <option value="55">55 · A late transfer from the terminal building to the airfield of aircraft towing and service road</option>
+                <option value="56">56 · There is no suitable departure or arrival apron</option>
+                <option value="57">57 · Apron management is not properly planned</option>
+                <option value="58">58 · Aircraft cargo or cargo door jam or luggage door</option>
+                <option value="59">59 · Delay in unloading of cargo or cargo from aircraft</option>
+                <option value="60">60 · Delay in loading of cargo or luggage in the aircraft</option>
+                <option value="61">61 · There is a delay in the organization and transportation of air cargo and mail</option>
+                <option value="62">62 · The cargo or mail that is transported to the airport</option>
+                <option value="63">63 · The cargo or mail arrives late at the airport</option>
+                <option value="64">64 · The cargo or mail is not loaded in the aircraft</option>
+                <option value="65Z">65Z · Sectors and maintenance (large aviation service sector)</option>
+                <option value="65Y">65Y · A system failure in the aviation service (a large service sector)</option>
+                <option value="65X">65X · The aviation service is not prepared for operation</option>
+                <option value="66">66 · A late or defective passenger or load dispatch/arrival on the shuttle</option>
+                <option value="67">67 · A special service (passenger or load) for handling cargo and luggage</option>
+                <option value="68">68 · Special handling (cargo and luggage) in the transportation</option>
+                <option value="69">69 · Other reasons (cargo and luggage handling)</option>
+                <option value="70Z">70Z · Operational damage of an aircraft</option>
+                <option value="70Y">70Y · Incorrect cabin or seat control</option>
+                <option value="70X">70X · Aircraft cabin cleaning and cleaning of the equipment</option>
+                <option value="71">71 · The airline's mismanagement</option>
+                <option value="72">72 · The delay in the airline's personnel (staff)</option>
+                <option value="73">73 · The airline's non-communication with other services (airports, control, etc.)</option>
+                <option value="74">74 · The control of the airlines in the field of control</option>
+                <option value="75">75 · The airline's technical error</option>
+                <option value="76">76 · Aircraft delay due to other airlines (station, connection)</option>
+                <option value="77">77 · The delayed work of the airlines</option>
+                <option value="78">78 · The lack of operation of the airlines</option>
+                <option value="79">79 · Other reasons for the airlines</option>
+                <option value="80">80 · The error of the airport service of the airport</option>
+                <option value="81">81 · The lack of equipment of the airport service (one-time flights)</option>
+                <option value="82">82 · The service of the airport of the airport of the airport (apron transport, economy)</option>
+                <option value="83">83 · The poor planning of the airport service (organization of the event)</option>
+                <option value="84">84 · The poor service of the airport service (one-time flights)</option>
+                <option value="85">85 · The loss of the airport service (compliance of the city)</option>
+                <option value="86">86 · The short-term transfer of the passenger traffic (arrival/departure)</option>
+                <option value="87">87 · The transfer of the airport service of the airport service</option>
+                <option value="88">88 · The airport service of the airport service</option>
+                <option value="89K">89K · Air traffic control, weather, and environmental impact</option>
+                <option value="90">90 · Airplane work (airplane and cleaning of the aircraft, cleaning, etc.)</option>
+                <option value="91">91 · The loss of work of the air (passenger, passenger, or transportation)</option>
+                <option value="92">92 · Air traffic and landing of the airplane on the air</option>
+                <option value="93Z">93Z · The state of the airplane</option>
+                <option value="93Y">93Y · The plane (air) of the seat (seat) and the seat (seat)</option>
+                <option value="93X">93X · The pilot (passenger) and the pilot (passenger)</option>
+                <option value="94">94 · The airplane of the air (plane) of the airplane</option>
+                <option value="95">95 · The airplane of the air (cargo, passenger) of the air</option>
+                <option value="96">96 · The airplane of the air (passenger, passenger, or the air)</option>
+                <option value="97">97 · The airplane of the air (air, passenger, or the plane)</option>
+                <option value="98">98 · The airplane of the air (air, passenger, or the plane)</option>
+                <option value="99">99 · The airplane of the air (air, passenger, or the plane)</option>
+            </select>
+            <button type="button" onclick="addDelayInput()">Ekle</button>
+        </div>
+    </div>
+
+    <script>
+        function parseTime(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        function formatTime(minutes) {
+            const hours = Math.floor(minutes / 60).toString().padStart(2, '0');
+            const mins = (minutes % 60).toString().padStart(2, '0');
+            return `${hours}:${mins}`;
+        }
+
+        function calculateDelays() {
+            const sta = parseTime(document.getElementById('sta').value);
+            const std = parseTime(document.getElementById('std').value);
+            const ata = parseTime(document.getElementById('ata').value);
+            const dcl = parseTime(document.getElementById('dcl').value);
+            const pbt = parseTime(document.getElementById('pbt').value);
+            
+            const lateArrival = ata - sta;
+            const atcClearance = pbt - dcl;
+            const totalDelay = pbt - std;
+            
+            const totalWch = parseInt(document.getElementById('totalWch').value, 10) * 3;
+            const totalWchFormatted = formatTime(totalWch);
+            
+            addDelayInput("93Z", formatTime(lateArrival));
+            addDelayInput("89K", formatTime(atcClearance));
+            addDelayInput("19Z", totalWchFormatted);
+
+            document.getElementById('remainingDelay').textContent = `TOTAL DL: ${formatTime(totalDelay)}`;
+        }
+
+        function addDelayInput(code = null, time = null) {
+            const delayInputs = document.getElementById('delayInputs');
+            const selectedCode = code || document.getElementById('delayCodesDropdown').value;
+
+            const delayInputGroup = document.createElement
+            ('div');
+            delayInputGroup.classList.add('delay-input-group');
+
+            const delayCodeSpan = document.createElement('span');
+            delayCodeSpan.textContent = selectedCode + '/';
+            delayInputGroup.appendChild(delayCodeSpan);
+
+            const delayTimeInput = document.createElement('input');
+            delayTimeInput.type = 'time';
+            delayTimeInput.required = true;
+            if (time) {
+                delayTimeInput.value = time;
+            }
+            delayTimeInput.addEventListener('input', updateRemainingDelay);
+            delayInputGroup.appendChild(delayTimeInput);
+
+            const removeButton = document.createElement('button');
+            removeButton.classList.add('remove-button');
+            removeButton.innerHTML = '❌';
+            removeButton.addEventListener('click', () => {
+                delayInputGroup.remove();
+                updateRemainingDelay();
+            });
+            delayInputGroup.appendChild(removeButton);
+
+            delayInputs.appendChild(delayInputGroup);
+        }
+
+        function updateRemainingDelay() {
+            const totalDelay = parseTime(document.getElementById('pbt').value) - parseTime(document.getElementById('std').value);
+            const delayInputs = document.querySelectorAll('#delayInputs input[type="time"]');
+            let totalInputDelay = 0;
+            
+            delayInputs.forEach(input => {
+                if (input.value) {
+                    totalInputDelay += parseTime(input.value);
+                }
+            });
+
+            const remainingDelay = totalDelay - totalInputDelay;
+            const remainingDelayElement = document.getElementById('remainingDelay');
+            
+            if (remainingDelay === 0) {
+                remainingDelayElement.innerHTML = `TOTAL DL: ${formatTime(totalDelay)} <span class="checkmark">✅</span>`;
+            } else {
+                remainingDelayElement.innerHTML = `TOTAL DL: ${formatTime(totalDelay)} (${formatTime(remainingDelay)})`;
+            }
+        }
+    </script>
+</body>
+</html>
+
